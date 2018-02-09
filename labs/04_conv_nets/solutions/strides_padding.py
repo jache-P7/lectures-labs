@@ -1,33 +1,31 @@
-image = tf.placeholder(tf.float32, [None, None, None, 3])
-kernel = tf.placeholder(tf.float32, [3, 3, 3])
+def my_init(shape=(5, 5, 3, 3), dtype=None):
+    array = np.zeros(shape=shape)
+    array[2, 2] = np.eye(3)
+    return array
 
-def conv(x, k):
-    k = tf.reshape(k, shape=[3, 3, 3, 1])
-    return tf.nn.depthwise_conv2d(x, k, strides=[1,2,2,1],
-                                  padding='SAME')
 
-def conv_valid(x, k):
-    k = tf.reshape(k, shape=[3, 3, 3, 1])
-    return tf.nn.depthwise_conv2d(x, k, strides=[1,2,2,1],
-                                  padding='VALID')
+conv_strides_same = Sequential([
+    Conv2D(filters=3, kernel_size=5, strides=2,
+           padding="same", kernel_initializer=my_init,
+           input_shape=(None, None, 3))
+])
+conv_strides_valid = Sequential([
+    Conv2D(filters=3, kernel_size=5, strides=2,
+           padding="valid", kernel_initializer=my_init,
+           input_shape=(None, None, 3))
+])
 
-output_image = conv(image, kernel)
-output_image_valid = conv_valid(image, kernel)
-kernel_data = np.zeros(shape=(3, 3, 3)).astype(np.float32)
+img_in = np.expand_dims(sample_image, 0)
+img_out_same = conv_strides_same.predict(img_in)
+img_out_valid = conv_strides_valid.predict(img_in)
 
-# identity kernel: ones only in the center of the filter
-kernel_data[1, 1, :] = 1
-print('Identity 3x3x3 kernel:')
-print(np.transpose(kernel_data, (2, 0, 1)))
+print("Shape of result with SAME padding:", img_out_same.shape)
+print("Shape of result with VALID padding:", img_out_valid.shape)
 
-with tf.Session() as sess:
-    feed_dict = {image: [sample_image], kernel: kernel_data}
-    conv_img, conv_img_valid = sess.run([output_image, output_image_valid],
-                                        feed_dict=feed_dict)
-
-    print("Shape of result with SAME padding:", conv_img.shape)
-    print("Shape of result with VALID padding:", conv_img_valid.shape)
-    show(conv_img[0])
+fig, (ax0, ax1, ax2) = plt.subplots(ncols=3, figsize=(12, 4))
+ax0.imshow(img_in[0].astype(np.uint8))
+ax1.imshow(img_out_same[0].astype(np.uint8))
+ax2.imshow(img_out_valid[0].astype(np.uint8))
 
 # We observe that the stride divided the size of the image by 2
 # In the case of 'VALID' padding mode, no padding is added, so 

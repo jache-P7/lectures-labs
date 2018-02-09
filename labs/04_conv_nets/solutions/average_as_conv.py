@@ -1,31 +1,33 @@
-image = tf.placeholder(tf.float32, [None, None, None, 3])
-kernel = tf.placeholder(tf.float32, [3, 3, 3, 3])
+avg_pool = Sequential([AvgPool2D(3, strides=3, input_shape=(None, None, 3))])
 
-def conv(x, k):
-    return tf.nn.conv2d(x, k, strides=[1, 3, 3, 1],
-                        padding='SAME')
+img_in = np.expand_dims(sample_image, 0)
+img_out_avg_pool = avg_pool.predict(img_in)
 
-output_image = conv(image, kernel)
-output_pool = tf.nn.avg_pool(image, ksize=[1, 3, 3, 1],
-                             strides=[1, 3, 3, 1],
-                             padding='SAME')
+# Same operation implemented with a convolution
 
-kernel_data = np.zeros(shape=(3, 3, 3, 3)).astype(np.float32)
-kernel_data[:, :, 0, 0] = 1 / 9.
-kernel_data[:, :, 1, 1] = 1 / 9.
-kernel_data[:, :, 2, 2] = 1 / 9.
+def my_init(shape=(3, 3, 3, 3), dtype=None):
+    array = np.zeros(shape=shape, dtype=dtype)
+    array[:, :, 0, 0] = 1 / 9.
+    array[:, :, 1, 1] = 1 / 9.
+    array[:, :, 2, 2] = 1 / 9.
+    return array
 
-with tf.Session() as sess:
-    feed_dict = {image: [sample_image], kernel: kernel_data}
-    conv_img, pool_img = sess.run([output_image, output_pool],
-                                  feed_dict=feed_dict)
-    print(conv_img.shape, pool_img.shape)
-    plt.subplot(1, 2, 1)
-    show(conv_img[0])
-    plt.title("conv")
-    plt.subplot(1, 2, 2)
-    show(pool_img[0])
-    plt.title("avg_pool")
+
+conv_avg = Sequential([
+    Conv2D(kernel_size=3, filters=3, strides=3,
+           padding="same", kernel_initializer=my_init,
+           input_shape=(None, None, 3))
+])
+img_out_conv = conv_avg.predict(np.expand_dims(sample_image, 0))
+
+print("input shape:", img_in.shape)
+print("output avg pool shape:", img_out_avg_pool.shape)
+print("output conv shape:", img_out_conv.shape)
+
+fig, (ax0, ax1, ax2) = plt.subplots(ncols=3, figsize=(10, 5))
+ax0.imshow(img_in[0].astype('uint8'))
+ax1.imshow(img_out_avg_pool[0].astype('uint8'))
+ax2.imshow(img_out_conv[0].astype('uint8'));
 
 # Note that the numerical computation/approximation might
 # be slightly different in the two cases
