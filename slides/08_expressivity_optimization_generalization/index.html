@@ -555,7 +555,7 @@ l /= len(x)
 ]
 
 .right-column.center[
-  <img src="images/full_data_mlp_loss_landscape.gif" width="100%" />
+  <img src="images/empirical_loss_landscape_minimal_mlp.png" width="450px" />
 ]
 
 ???
@@ -605,7 +605,11 @@ l /= len(x)
 ]
 
 .right-column.center[
-  <img src="images/single_sample_mlp_loss_landscape.gif" width="100%" />
+  <video controls="" autoplay="" loop="" width="400">
+    <source type="video/mp4"
+    src="images/stochastic_landscape_minimal_mlp.mp4" />
+    Your browser does not support the video tag.
+  </video>
 ]
 
 ---
@@ -681,7 +685,7 @@ Optimal learning rate should be higher for some gradient components:
 
 Fixing the optimizer:
 
- - AdaGrad, RMSProp, AdaDelta, ADAM
+ - AdaGrad, RMSProp, AdaDelta, Adam, K-FAC
  - Cheap rescaling of the gradient components by the square root of the
    (moving) average of $g_i^2$
 
